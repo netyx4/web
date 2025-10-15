@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
+    <title>home</title>
+</head>
+
+<style>
+    body {
+        color: rgb(81, 35, 130);
+        align-items: center;
+        text-align: center;
+        width: auto;
+        height: auto;
+
+    }
+    .first{
+        width: 200px;
+        height: 70px;
+        background-color: coral;
+        text-decoration: solid;
+        font-size: medium;
+    }
+    .stats {
+        width: fit-content;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+    }
+
+    .outer{
+        margin-right: 50px;
+        width: 200px;
+        height: 30px;
+        background-color: aliceblue;
+        border-radius: 10px;
+        margin: 5px 0px 5px 0px;
+        border-width: 2px;
+        border-style: double;
+        
+    }
+    .inner{
+        margin-right: 55px;
+        height: 20px;
+        background-color: rgb(114, 175, 218);
+        border-radius: 10px;
+        margin: auto;
+        margin-top: 5px;
+        padding: auto;
+    }
+
+     #inner1 {
+        width: 190px;
+     }
+     #inner2 {
+        width: 190px;
+     }
+     #inner3 {
+        width: 190px;
+     }
+     #inner4 {
+        width: 190px;
+     }
+
+    .Tamagocha{
+        width: fit-content;
+        height: 300px;
+        margin-top: 50px;
+    }
+    .buttons{
+        align-items: center;
+        margin-top: 50px;
+    }
+    .menu {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    
+    ul{
+        text-align: center;
+    }
+
+    li {
+        width: fit-content;
+        list-style: none;
+        border: 1px solid;
+        margin-top: 3px;
+        width:200px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 20px;
+        background-color: antiquewhite;
+    }
+
+    li:hover{
+        background-color: bisque;
+    }
+</style>
+
+
+
+<body>
+
+    <div class="menu">
+        <ul>
+            <li><a href="{% url 'shop' %}">shop</a></li>
+            <li><a href="{% url 'gameshop' %}">gameshop</a></li>
+            <li><a href="{% url 'settings' %}">settings</a></li>
+            <li><a href="{% url 'menu' %}">menu</a></li>
+            <li><a href="{% url 'user' username=username %}">user</a></li>
+            <li><a href="{% url 'global_chat' %}">global chat</a></li>
+            <li><a href="{% url 'tamagochi' %}">tamagochi</a></li>
+            <!--<li><form action="" method="post">{% csrf_token %}<button class="logout" type="submit" name="logout">logout</button></form></li>-->
+            <li><a href="{% url 'logout' %}">logout</a></li>
+        </ul>
+    </div>
+
+    {% if create == False %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <button class="first" type="submit" name="first">Create Tamagochi</button>
+    </form>
+
+    {% else %}
+
+
+
+    <img class="Tamagocha" src="{% static skin %}" alt="My image">
+    <div class="stats">
+        <div class="outer"><div class="inner" id="innerone"><span id="tam_water_display">100</span></div></div>
+        <div class="outer"><div class="inner" id="inner2"><span id="tam_food_display">100</span></div></div>
+        <div class="outer" ><div class="inner" id="inner3"><span id="tam_sleep_display">100</span></div></div>
+        <div class="outer"><div class="inner" id="inner4"><span id="tam_playtime_display">100</span></div></div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button id="water_suply">add water</button>
+        <button id="food_suply">add food</button>
+        <button id="sleep_suply">add sleep</button>
+        <button id="playtime_suply">add playtime</button>
+    </div>
+
+    <div><span id="income">0</span></div>
+    <div><span id="money">0</span></div>
+
+    <div class="skins">
+        <button class="clothingbutton">skin</button>
+        <div>
+            <p>1</p>
+            <p>2</p>
+            <p>3</p>
+        </div>
+    </div>
+
+
+
+
+
+
+    {% endif %}
+    <script>
+        const sessionid = "{{ sessionid }}";  // Passed from Django
+    
+        const socket_water = new WebSocket(`ws://127.0.0.1:8000/ws/tam_water/?sessionid=${sessionid}`);
+        const socket_food = new WebSocket(`ws://127.0.0.1:8000/ws/tam_food/?sessionid=${sessionid}`);
+        const socket_sleep = new WebSocket(`ws://127.0.0.1:8000/ws/tam_sleep/?sessionid=${sessionid}`);
+        const socket_playtime = new WebSocket(`ws://127.0.0.1:8000/ws/tam_playtime/?sessionid=${sessionid}`);  
+        const socket_income = new WebSocket(`ws://127.0.0.1:8000/ws/tam_income/?sessionid=${sessionid}`);     
+
+        var elemone = document.getElementById("innerone");
+
+        // Receive messages from the server
+        socket_water.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                document.getElementById("tam_water_display").innerText = data.water_need;
+                elemone.style.width = parseint(data.water_need);
+            } catch (error) {
+                console.error("JSON Parsing Error:", error);
+            }
+        };
+    
+    
+        document.getElementById("water_suply").addEventListener("click", add_water);
+        function add_water() {
+            if (socket_water.readyState === WebSocket.OPEN) {
+                socket_water.send(JSON.stringify({ action: "add_water" }));
+            } else {
+                console.error("WebSocket is not open!");
+            }
+        }
+    
+    
+    
+        socket_food.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                document.getElementById("tam_food_display").innerText = data.food_need;
+            } catch (error) {
+                console.error("JSON Parsing Error:", error);
+            }
+        };
+
+        document.getElementById("food_suply").addEventListener("click", add_food);
+        function add_food() {
+            socket_food .send(JSON.stringify({ action: "add_food" }));
+        }
+    
+    
+
+
+
+
+
+        socket_sleep.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                document.getElementById("tam_sleep_display").innerText = data.sleep_need;
+            } catch (error) {
+                console.error("JSON Parsing Error:", error);
+            }
+        };
+
+        document.getElementById("sleep_suply").addEventListener("click", add_sleep);
+        function add_sleep() {
+            socket_sleep .send(JSON.stringify({ action: "add_sleep" }));
+        }
+
+
+        
+        socket_playtime.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                document.getElementById("tam_playtime_display").innerText = data.playtime_need;
+            } catch (error) {
+                console.error("JSON Parsing Error:", error);
+            }
+        };
+
+        document.getElementById("playtime_suply").addEventListener("click", add_playtime);
+        function add_playtime() {
+            socket_playtime .send(JSON.stringify({ action: "add_playtime" }));
+        }
+
+
+
+
+        socket_income.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                document.getElementById("income").innerText = data.tam_income_json;
+            } catch (error) {
+                console.error("JSON Parsing Error:", error);
+            }
+        };
+
+        socket_income.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                document.getElementById("money").innerText = data.tam_money;
+            } catch (error) {
+                console.error("JSON Parsing Error:", error);
+            }
+        };
+
+
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var coll = document.getElementsByClassName("clothingbutton");
+            var i;
+
+            for (i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+            });
+            }
+        });
+    </script>
+</body>
+</html>

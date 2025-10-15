@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
+    <title>Document</title>
+</head>
+<style>
+    body {
+        
+        color: rgb(81, 35, 130);
+        width: 1500px;
+        padding: 20px;
+    }
+    .menu {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    .menu_ul{
+        text-align: center;
+        margin-right: 20px;
+        margin-top: 20px;
+
+    }
+
+    .menu_li {
+        width: fit-content;
+        list-style: none;
+        border: 1px solid;
+        margin-top: 3px;
+        width:200px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 20px;
+        background-color: antiquewhite;
+    }
+
+    .menu_li:hover{
+        background-color: bisque;
+    }
+</style>
+<body>
+
+    <div class="menu">
+        <ul class="menu_ul">
+            <li class="menu_li"><a href="{% url 'login' %}">login</a></li>
+            <li class="menu_li"><a href="{% url 'menu' %}">menu</a></li>
+        </ul>
+    </div>
+
+    <div>
+        <a href="/">return</a>
+        <form name="form_account" method="post">
+            {% csrf_token %}
+            <label>NAME HERE</label>
+                <input id="username_login"name="acc_username" type="text"></input>
+            <label>EMAIL HERE</label>
+                <input name="acc_email" type="email"></input>
+            <label>PASSWORD HERE</label>
+                <input name="acc_p" type="password"></input>
+            <label>PASSWORD HERE AGAIN</label>
+                <input name="acc_password2" type="password"></input>
+
+            <input type="submit" value='DONE'></input>
+
+            <label >{{ form.non_field_errors }}
+                {{ form.acc_p.errors }}
+                {{ form.acc_password2.errors }}</label>
+        </form>
+    </div>
+
+
+
+
+
+<!--background-color: #C1CFA1;-->
+</body>
+</html>
